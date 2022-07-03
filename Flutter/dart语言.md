@@ -604,6 +604,94 @@ main() {
 
 
 
+## 函数
+
+在dart中函数的地位一点都不亚于对象，支持闭包和高阶函数，而且dart中的函数也会比Java要灵活的多，而且Kotlin中的一些函数特性，它也支持甚至比Kotlin支持的更全面。比如支持默认值参数、可选参数、命名参数等.
+
+### 1：传参规则
+
+```dart
+// 个数，顺序都要固定
+add1(num a, num b, num c, num d) {
+  print(a + b + c + d);
+}
+
+//个数不固定，顺序固定
+add2([num a = 0, num b = 0, num c = 0, num d = 0]) {
+  print(a + b + c + d);
+}
+
+//个数不固定，顺序不固定，支持命名参数,也叫可选参数，是dart中的一大特性，这就是为啥Flutter代码那么多可选属性，大量使用可选参数
+add3({num a = 0, num b = 0, num c = 0, num d = 0}) {
+  print(a + b + c + d);
+}
+
+//a,b 个数固定，顺序固定，c,d个数，顺序都不固定
+add4(num a, num b, {num c = 0, num d = 0}) {
+  print(a + b + c + d);
+}
+
+// a, b 个数固定，顺序固定，c,d个数不固定，顺序固定
+add5(num a, num b, [num c = 0, num d = 0]) {
+  print(a + b + c + d);
+}
+
+main() {
+  add1(100, 100, 100, 100);
+  add2(100, 100);
+  add3(
+      b: 200,
+      a: 200,
+      c: 100,
+      d: 100);
+  add4(100, 100, d: 100, c: 100);
+  add5(100, 200, 100, 100);
+}
+```
+
+总而言之：
+
+- 无[]和{}包裹的部分：个数，顺序都要固定
+- []包裹：个数不固定，顺序固定
+- {}包裹：个数不固定，顺序不固定
+- 顺序固定的都不支持 **命名参数**
+
+### 2：函数默认参数和可选参数(以及与Kotlin对比）
+
+dart中函数的默认值参数和可选参数和Kotlin中默认值参数和命名参数一致，只是写法上不同而已
+
+```dart
+add3({num a, num b, num c, num d = 100}) {//d就是默认值参数，给的默认值是100
+   print(a + b + c + d);
+}
+
+main() {
+    add3(b: 200, a: 100, c: 800);
+}
+```
+
+与Kotlin对比
+
+```kotlin
+fun add3(a: Int, b: Int, c: Int, d: Int = 100) {
+    println(a + b + c + d)
+}
+
+fun main(args: Array<String>) {
+    add3(b = 200, a = 100, c = 800)
+}
+```
+
+
+
+
+
+
+
+
+
+
+
 ## 类的抽象
 
 ### 1：mixin
