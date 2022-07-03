@@ -53,6 +53,8 @@ suspend fun main() {
 
 3）如果exceptionHandler1和exceptionHandler2都不在，那么就会去到**线程的错误处理**——crash。
 
+4）在一个child coroutine中安装exceptionHandler没有效果。
+
 总结：**In order for a `CoroutineExceptionHandler` to have an effect, it must be installed either in the `CoroutineScope` or in a top-level coroutine.**
 
 要么
@@ -141,37 +143,47 @@ topLevelScope2.launch {
 Handle java.lang.RuntimeException: RuntimeException in nested coroutine in try/catch
 ```
 
+总结：这种情况，只需要在await()处调用try/catch捕获。
+
 #### 2: async启动的协程是Child协程
 
 看一段代码：
 
 ```kotlin
-val exceptionHandler1 = CoroutineExceptionHandler { coroutineContext, throwable ->
-    println("Handle $throwable in handler1")
-}
-val exceptionHandler2 = CoroutineExceptionHandler { coroutineContext, throwable ->
-    println("Handle $throwable in handler2")
-}
-val topLevelScope = CoroutineScope(exceptionHandler1)
-val topLevelScope2 = CoroutineScope(exceptionHandler2)
+suspend fun main() {
 
-var deferred2: Deferred<Nothing>? = null
+
+    val exceptionHandler1 = CoroutineExceptionHandler { coroutineContext, throwable ->
+        println("Handle $throwable in handler1")
+    }
+    val exceptionHandler2 = CoroutineExceptionHandler { coroutineContext, throwable ->
+        println("Handle $throwable in handler2")
+    }
+    val topLevelScope = CoroutineScope(exceptionHandler1)
+    val topLevelScope2 = CoroutineScope(exceptionHandler2)
+
+    var deferred2: Deferred<Nothing>? = null
 // 顶层async
-topLevelScope.launch  {
-    deferred2 = async {
-    // 发生报错
-    throw RuntimeException("RuntimeException in nested coroutine")
+    topLevelScope.launch  {
+        deferred2 = async {
+            // 发生报错
+            throw RuntimeException("RuntimeException in nested coroutine")
+        }
     }
-}
 
-topLevelScope2.launch {
-    try {
-        while (deferred2 == null)
-            print("")
-        deferred2!!.await()
-    } catch (e: Exception) {
-        println("Handle $e in try/catch")
+    topLevelScope2.launch {
+        try {
+            while (deferred2 == null)
+                print("")
+            delay(5000)
+            println("after 5 seconds")
+            deferred2!!.await()
+        } catch (e: Exception) {
+            println("Handle $e in try/catch")
+        }
     }
+
+    delay(800000)
 }
 ```
 
@@ -179,29 +191,56 @@ topLevelScope2.launch {
 
 ```
 Handle java.lang.RuntimeException: RuntimeException in nested coroutine in handler1
+after 5 seconds
 Handle java.lang.RuntimeException: RuntimeException in nested coroutine in try/catch
 ```
 
 可以看到，async里面的报错，**立即**沿着Job继承链**上升**——propagated up，即使没调用await()，**并且也会**在await()处re-throw。如果topLevelScope的exceptionHandler1被去掉，那么会crash，因为没有handler捕获这个上升的报错。
 
 ```
-Handle java.lang.RuntimeException: RuntimeException in nested coroutine in try/catch
 Exception in thread "DefaultDispatcher-worker-3" java.lang.RuntimeException: RuntimeException in nested coroutine
-	at com.example.composeproject.TestKt$main$2$1.invokeSuspend(Test.kt:68)
+	at com.example.composeproject.TestKt$main$2$1.invokeSuspend(Test.kt:25)
 	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
 	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:106)
 	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:570)
 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:749)
 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:677)
 	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:664)
-	Suppressed: kotlinx.coroutines.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@596693ef, Dispatchers.Default]
+	Suppressed: kotlinx.coroutines.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@596502e1, Dispatchers.Default]
+after 5 seconds
+Handle java.lang.RuntimeException: RuntimeException in nested coroutine in try/catch
 ```
 
-总结：抛出异常后，1）需要在Job链添加Handler捕获 2）在await()处re-throw的异常也要捕获。
+总结：抛出异常后，
+
+1）需要在Job链添加Handler捕获 
+
+2）在await()处re-throw的异常也要捕获。
+
+放一个表格总结一下对于Uncaught Exception(没有在协程体内被try/catch的异常)的协程处理规律：
+
+|                     |   launch    |                           async                           |
+| :-----------------: | :---------: | :-------------------------------------------------------: |
+| top level Coroutine | 沿着Job上升 |             被deferred包装，在await处re-throw             |
+|   child Coroutine   | 沿着Job上升 | 立刻沿着Job上升（即使不调用await），调用await时也re-throw |
+
+
 
 ### 1.4 特殊的情况
 
 这包括`coroutineScope{}`以及`supervisorScope{}`，[原文总结](https://www.lukaslechner.com/why-exception-handling-with-kotlin-coroutines-is-so-hard-and-how-to-successfully-master-it/)
+
+
+
+
+
+## 2:参考资料
+
+[全面掌握协程异常处理](https://www.lukaslechner.com/why-exception-handling-with-kotlin-coroutines-is-so-hard-and-how-to-successfully-master-it/)
+
+
+
+
 
 
 
