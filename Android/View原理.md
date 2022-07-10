@@ -553,5 +553,36 @@ ViewGroup.java
 
 #### 2：View对事件的接收判断
 
+简化版代码：
+
+```java
+ public boolean dispatchTouchEvent(MotionEvent event) {
+        boolean result = false;
+
+        ListenerInfo li = mListenerInfo;
+        if (li != null && li.mOnTouchListener != null
+                && li.mOnTouchListener.onTouch(this, event)) {
+            result = true;
+        }
+
+        if (!result && onTouchEvent(event)) {
+            result = true;
+        }
+        
+        return result;
+    }
+```
+
+可以看到，
+
+1. 如果有onTouchListener，就先看看onTouchListener，假如它返回true，就跳过onTouchEvent了，返回false再判断onTouchEvent
+2. dispatchTouchEvent决定这个view是否接收，不接收的话轮到下一个child view来判断亦或交给上一层。
+
+
+
+到这里，事件分发就完结了。
+
+
+
 
 
