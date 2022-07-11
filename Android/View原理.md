@@ -582,6 +582,20 @@ ViewGroup.java
 
 到这里，事件分发就完结了。
 
+## 三：控件树的测量 布局 绘制
+
+这一部分太过庞大，贴一下其他文章：
+
+[掘金一文了解测量布局绘制，但缺乏整体观，细节还行](https://juejin.cn/post/6939540905581887502)
+
+[Android开发艺术探索](https://www.kancloud.cn/alex_wsc/android_art/1828458)
+
+### 1: MeasureSpec
+
+在网路上有很多关于这个类是什么的描述，这里就不赘述，贴一张MeasureSpec和LayoutParams的相互作用关系图：
+
+![](https://img.kancloud.cn/61/ed/61ed8d409cb1b09f5575c1f51ab7ae79_1351x364.png)
+
 
 
 
