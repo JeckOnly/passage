@@ -596,7 +596,15 @@ ViewGroup.java
 
 ![](https://img.kancloud.cn/61/ed/61ed8d409cb1b09f5575c1f51ab7ae79_1351x364.png)
 
+### 整体
 
+View Tree的理解，对于某一个行为，比如测量或布局（measure/layout），同一层是循环遍历，在tree上是递归调用完成由parent往child。ViewGroup的onMeasure循环遍历child view的measure，ViewGroup的onLayout循环遍历child view的layout。而View的onMeasure和onLayout没有负责child view的递归调用的功能，这也符合子类是父类的拓展这个理念。
+
+view group onMeasure作用：
+
+1）循环遍历 child view调用 child view的measure
+
+2）设定自己的setMeasuredDimension
 
 
 
