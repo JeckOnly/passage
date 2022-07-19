@@ -196,6 +196,10 @@ upward
 
 [官方文档学习Fragment事务](https://developer.android.com/guide/fragments/transactions)
 
+### 获取FragmentManager
+
+<img src="https://developer.android.com/static/images/guide/fragments/manager-mappings.png" style="zoom:50%;" />
+
 ### addToBackStack
 
 在commit一个事务的时候有没有添加到返回栈之中影响的是：**这个事务有没有单独的成为一个可回滚的事件**
@@ -261,6 +265,117 @@ FragmentA: ---onDetach---
 
 
 ## 三：Navigation框架学习
+
+### 学习思路
+
+在使用Navigation时，往往要在Activity的layout文件设置FragmentContainerView作为我们导航的部分。
+
+![](../img/oooo.png)
+
+所以在看源码时可以从这个类的生命周期入手。
+
+### NavHostFragment
+
+#### onAttach
+
+![](../img/dfasdfa.png)
+
+那么主要的Fragment是什么意思呢？意思如下：
+
+> The primary navigation fragment's **child FragmentManager** will be called first to **process** delegated **navigation actions** such as FragmentManager.popBackStack() if no ID or transaction name is provided to pop to
+
+也就是说由NavHostFragment的children来接收导航行为。
+
+#### onCreate
+
+这个阶段做了两件事
+
+1. 初始化NavController
+2. 给NC设置导航图
+
+在设置导航图的时候，包含解析导航图，把**导航图解析成一个树形结构**。解析过程后文将。
+
+#### onCreateView
+
+```kotlin
+public override fun onCreateView(
+    inflater: LayoutInflater,
+    container: ViewGroup?,
+    savedInstanceState: Bundle?
+): View? {
+    val containerView = FragmentContainerView(inflater.context)
+    // When added via XML, this has no effect (since this FragmentContainerView is given the ID
+    // automatically), but this ensures that the View exists as part of this Fragment's View
+    // hierarchy in cases where the NavHostFragment is added programmatically as is required
+    // for child fragment transactions
+    containerView.id = containerId
+    return containerView
+}
+```
+
+可以看到，NavHostFragment(NHF)的layout就是一个`FragmentContainerView`，那么这个试图结构就类似于：
+
+<img src="../img/EEC980C0A1F49551DF3218B77F91DA2C.png" style="zoom: 33%;" />
+
+#### onViewCreated
+
+这个方法把NavController设置为第一个fcv的tag
+
+```kotlin
+super.onViewCreated(view, savedInstanceState)
+check(view is ViewGroup) { "created host view $view is not a ViewGroup" }
+Navigation.setViewNavController(view, navHostController)
+// When added programmatically, we need to set the NavController on the parent - i.e.,
+// the View that has the ID matching this NavHostFragment.
+if (view.getParent() != null) {
+    viewParent = view.getParent() as View
+    if (viewParent!!.id == id) {
+        Navigation.setViewNavController(viewParent!!, navHostController)
+    }
+}
+```
+
+<img src="../img/4B8B39E21443DDE10D5E0634DC50AE31.png" style="zoom:33%;" />
+
+当动态添加NHF的时候，添加到View.parent，否则view
+
+
+
+### 导航图的解析
+
+具体的过程都在NavInflate类中。
+
+一些笔记
+
+<img src="../img/0AD0244E22382762D0D216642D2E78CA.png" style="zoom: 50%;" />
+
+### 框架类图
+
+最后放一张整个库的大致类图：
+
+<img src="../img/Navigation框架.png" style="zoom:150%;" />
+
+1. 上层对库的调用入口是Navigation， 这是一个单例
+2. 跳转的工作和按返回键的逻辑，都由NavController去分派调度，NavHostFragment只是一个载体/容器
+3. NavController类似于一个“中心”，解析、跳转等具体逻辑都不是由它完成，却是由它来调度
+4. 不同的目的地有不同的跳转实现，Navigator是抽象类，具体的实现官方有四个
+5. 解析导航图xml由NaviInflater来完成
+
+### 总结
+
+整个框架是对单一职责原则、里氏替换原则、面向对象设计的极致应用，在FragmentManager和FragmentTransavtion的基础上（不完全），抽象出了这个导航框架。
+
+
+
+参考：
+
+[整体观比较强](https://blog.csdn.net/mq2553299/article/details/80445952)
+
+[源码分析上 掘金](https://juejin.cn/post/7048262381171900452)
+
+[源码分析下 掘金](https://juejin.cn/post/7092401794793357325)
+
+[这图画的不错](https://juejin.cn/post/6985354505621602335)
 
 
 
