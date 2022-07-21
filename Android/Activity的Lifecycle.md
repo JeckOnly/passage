@@ -2,7 +2,7 @@
 
 分析ComponentActivity
 
-![](D:\study\passage\img\QQ图片20220721174814.png)
+![](../img/QQ图片20220721174814.png)
 
 在api < 29和api >= 29的实现方案是不一样的：
 

@@ -543,7 +543,7 @@ ViewGroup.java
 
 流程图：
 
-![](../img/view group dispatchTouchEvent.png)
+![](../img/是法国岁的法国的.png)
 
 1. 如果是一个DOWN事件，会清除之前的状态和禁用拦截标志位，然后看看有没有子view禁用拦截，如果禁用了拦截，就遍历子view看哪一个子view想接收；没有禁用拦截就看看ViewGroup有没有拦截的意思，有的话，那之后的事件序列就给它处理了，没有的话，还是遍历子view
 2. 遍历子view，如果子view执行dispatchTouchEvent返回true，那么这个事件序列就给它处理，否则遍历到下一个。
