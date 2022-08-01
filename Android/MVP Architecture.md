@@ -15,7 +15,7 @@
 
 
 
-### 1：
+### 缺点1：View和Presenter的耦合
 
 由于没有采用 **观察者模式** ，因此在mvp中更新界面（和数据有关的展示）需要View层（Fragment/Activity）调用Presenter的方法去加载或更新数据，然后Presenter再调用View层的相关方法去更新数据。View和Presenter是互相引用的。
 
@@ -49,7 +49,7 @@ java})
 
 
 
-### 2：
+### 缺点2：Presenter需要关注View的生命周期
 
 MVP中没有使用DataBinding或LiveData/StateFlow结合观察者模式，来达到MVVM中**安全地在Activity/Fragment生命周期内数据驱动UI**。
 
@@ -83,4 +83,14 @@ MVP中没有使用DataBinding或LiveData/StateFlow结合观察者模式，来达
 ```
 
 
+
+### 缺点3：类的数量和复杂度
+
+需要定义各层的接口，还有绑定和解绑的方法，繁琐。
+
+
+
+### MVVM和MVP比较
+
+![](../img/45F819CE293A9FE5C005DF285C4B777A.png)
 
