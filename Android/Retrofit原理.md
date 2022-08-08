@@ -48,7 +48,8 @@ var appServiceProxy = (AppService) Proxy.newProxyInstance(
                 // args是参数
 
                 if (method.getDeclaringClass() == Object.class) {
-                    return method.invoke(this, args);
+                    
+                    return method.invoke(this, args);// this指InvocationHandler，也就是我们想Object中的方法就给匿名内部类执行
                 }
                 return method.invoke(perform, args);
             }
@@ -80,6 +81,8 @@ public class AppServiceDynamicProxy implements AppService {
            AppService.class.getMethod("sendMessageToServer", String.class),
            new Object[] { msg });
     }
+    
+    // 其实还有hashcode、toString等继承Object的方法也委托给handler
 }
 ```
 

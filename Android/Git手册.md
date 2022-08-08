@@ -6,3 +6,9 @@
 
 [删除github的默认分支报错](https://www.jianshu.com/p/e22b6b8fad8c)
 
+
+
+### 2：撤销本地修改
+
+[实用的](https://www.cnblogs.com/xioawu-blog/p/14449862.html)
+

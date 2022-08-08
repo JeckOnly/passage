@@ -227,6 +227,7 @@ class ActivityThread  extends ClientTransactionHandler {
           mInstrumentation.basicInit(this);
           ContextImpl context = ContextImpl.createAppContext(
                this, getSystemContext().mPackageInfo);
+         // 创建Application()实例，返回的是系统的那个类的实例，不是自己定义的例如MyApplication的实例。（还没搞懂，里面有判断是否创建）
           mInitialApplication = context.mPackageInfo.makeApplication(true, null);
     	// 调用Application的onCreate
           mInitialApplication.onCreate()
@@ -467,6 +468,7 @@ private Activity performLaunchActivity(ActivityClientRecord r, Intent custo
     ...
         try {
             // 3根据包名创建Application，如果已经创建则不会重复创建
+            // 创建Application()实例，返回的是自己定义的例如MyApplication的实例，不是系统的那个类的实例。（还没搞懂，里面有判断是否创建）
             Application app = r.packageInfo.makeApplication(false, mInstrumentation);
             ...
             Window window = null;
@@ -476,7 +478,7 @@ private Activity performLaunchActivity(ActivityClientRecord r, Intent custo
                 r.mPendingRemoveWindowManager = null;
             }
             appContext.setOuterContext(activity);
-            //4 attach方法为activity关联上下文环境，里面为Activity创建PhoneWindow
+            //4 attach方法为activity关联上下文环境，里面为Activity创建ContextImpl, PhoneWindow
             activity.attach(appContext, this, getInstrumentation(), r.token,
                     r.ident, app, r.intent, r.activityInfo, title, r.parent,
                     r.embeddedID, r.lastNonConfigurationInstances, config,
@@ -498,7 +500,7 @@ performLaunchActivity方法中主要做了以下几件事：
 1. 创建要启动activity的上下文环境
 2. 通过Instrumentation的newActivity方法，以反射形式创建activity实例
 3. 如果Application不存在的话会创建Application并调用Application的onCreate方法
-4. 初始化Activity，创建Window对象（PhoneWindow）并实现Activity和Window相关联
+4. 初始化Activity，创建ContextImpl, Window对象（PhoneWindow）并实现Activity和Window相关联
 5. 通过Instrumentation调用Activity的onCreate方法
 
 注：
