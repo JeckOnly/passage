@@ -265,7 +265,7 @@ ContextImpl context = ContextImpl.createAppContext(
 
 **同一个进程这两者返回的是同一个东西。**
 
-![IMG_0057(20220808-163951)](../img/IMG_0057(20220808-163951).PNG)
+![IMG_0057(20220808-163951)](../img/IMG_0057(20220808-163951).png)
 
 
 
