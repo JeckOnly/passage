@@ -73,8 +73,8 @@ protected ViewGroup generateLayout(DecorView decor) {
     
     //...省略若干requestFeature和setFlag和getValue判断和调用，这些都是根据a这个数组里有什么值来设置window各种不同的样式		的。为了简洁起见，这里省略。
 
-    // Inflate the window decor.下面的代码就是加载DecorView的跟布局了
-    // 下面这段代码根据不同的feature，决定DecorView的布局文件是哪一个
+    // Inflate the window decor.下面的代码就是选择并加载DecorView的内容了了
+    // 下面这段代码根据不同的feature，决定DecorView的root view是哪一个
 
     int layoutResource;
     int features = getLocalFeatures();
@@ -106,13 +106,14 @@ protected ViewGroup generateLayout(DecorView decor) {
     } else {
         layoutResource = R.layout.screen_simple;
     }
-	// 根据选出的布局文件，来加载资源，并设置为DecorView的根布局
+	// 根据选出的布局文件，来加载资源，并设置为DecorView的root view，即根view，
 
     mDecor.startChanging();
     
     final View root = inflater.inflate(layoutResource, null);
     
-	addView(root, 0, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));
+	addView(root, 0, new ViewGroup.LayoutParams(MATCH_PARENT, MATCH_PARENT));// 这个布局文件加载出来的view
+// 要填满DecorView(decorview是一个framelayout)
     
     ViewGroup contentParent = (ViewGroup)findViewById(ID_ANDROID_CONTENT);// 这个id要注意，等下讲
 
@@ -609,6 +610,34 @@ view group onMeasure作用：
 1）循环遍历 child view调用 child view的measure
 
 2）设定自己的setMeasuredDimension
+
+
+
+8.16
+
+在onMeasure方法上，它默认的处理逻辑是把**自身宽（高）最小值和背景宽（高）最小值中更大的那个**作为自己的宽（高），再结合父view传来的MeasureSpec得出适配后的宽（高）作为最终值，并调用setMeasuredDimension保存。
+
+如果自定义View，可以修改onMeasure，按自己想要的方式来测量自身，要调用setMeasuredDimension保存。
+
+如果自定义ViewGroup，需要负责遍历自己的子view来调用他们的measure方法，可以用封装好的
+
+```
+measureChildWithMargins
+```
+
+方法来测量子view。最后按照**某种规则**（这个规则即是LinearLayout和FrameLayout的布局效果不同的来源）得出ViewGroup自身的宽高，并调用setMeasuredDimension保存。
+
+
+
+在Layout中，主要就是确定View相对于自己父view的位置，并把值保存下来，在onLayout中(默认空实现)，自定义view一般是不重写，也就是保留空实现，对于ViewGroup，需要重写onLayout遍历子view，按照**某种规则**（这个规则即是LinearLayout和FrameLayout布局效果不同的来源）计算得到它们相对于自身的位置然后调用它们的layout方法。
+
+
+
+在draw中，会调用onDraw和dispatchDraw，这两个方法在View中默认都没有实现，自定义View需要重写onDraw方法，自定义ViewGroup一般不会涉及到draw这个环节的修改，dispatchDraw一般不用修改，比如FrameLayout和LinearLayout都没有重写onDraw和dispatchDraw。
+
+
+
+
 
 
 

@@ -1,3 +1,7 @@
+# Context作用
+
+![56hdfg](../img/56hdfg.png)
+
 # Context继承关系图
 
 ![sdfgsdfgsdfg](../img/sdfgsdfgsdfg.png)
@@ -93,7 +97,7 @@ class ContextImpl extends Context {
 
 
 
-# 绑定ContextImpl时机
+# ContextWrapper绑定ContextImpl时机
 
 Application，Service，Activity都在创建时和一个ContextImpl实例绑定（不同实例）。
 
@@ -237,27 +241,13 @@ ContextImpl context = ContextImpl.createAppContext(
 
 ```
 2022-08-08 16:24:44.028 510-510/com.jeckonly.launchmodedemo D/Jeck: process1  application  97905369
-2022-08-08 16:24:44.028 510-510/com.jeckonly.launchmodedemo D/Jeck: process2  applicationContext  97905369
+2022-08-08 16:24:44.028 510-510/com.jeckonly.launchmodedemo D/Jeck: process1  applicationContext  97905369
 
-2022-08-08 16:24:59.109 542-542/.process2 D/Jeck: process1  application  161889716
+2022-08-08 16:24:59.109 542-542/.process2 D/Jeck: process2  application  161889716
 2022-08-08 16:24:59.109 542-542/.process2 D/Jeck: process2  applicationContext  161889716
 ```
 
 **不同进程不同的实例。**
-
-因此在Activity中，baseCotext(ContextImpl)的applicationContext,,,,,,也是同一个。
-
-```kotlin
- 	    val a = application
-        val b = applicationContext
-        val c = baseContext.applicationContext
-
-        Log.d("Jeck", "process1  application  ${a.hashCode()}")
-        Log.d("Jeck", "process1  applicationContext  ${b.hashCode()}")
-        Log.d("Jeck", "process1  baseContext.applicationContext  ${c.hashCode()}")
-```
-
-
 
 
 
@@ -268,4 +258,56 @@ ContextImpl context = ContextImpl.createAppContext(
 ![IMG_0057(20220808-163951)](../img/IMG_0057(20220808-163951).png)
 
 
+
+# Dialog and Toast
+
+## Application context为什么不能启动Dialog
+
+[掘金好文](https://juejin.cn/post/6867390363020361742)
+
+Application context缺少token
+
+## Toast可以使用Application context
+
+NotificationManagerSerivce维护一个系统级的Toast队列，在show 一个Toast的时候，会创建一个ToastRecord入队，并为这个ToastRecord添加Token，在展示的时候会校验这个token，所以无论是activitycontext还是applicationcontext都没有问题。
+
+
+
+# BaseContext
+
+**Application**中的baseContext是ContextImpl
+
+**Activity**中的baseContext是ContextThemeWrapper或ContextImpl。
+
+## 对于AppCompatActivity
+
+```kotlin
+// Activity
+fun attach(context: Context) {
+	attachBaseContext(context);// context是base context
+}
+
+@Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(getDelegate().attachBaseContext2(newBase));// 这里重写了
+    }
+
+// AppCompatDelegateImpl
+fun attachBaseContext2() {
+     final ContextThemeWrapper wrappedContext = new ContextThemeWrapper(baseContext,
+                R.style.Theme_AppCompat_Empty);// 封装
+        wrappedContext.applyOverrideConfiguration(config);
+
+      
+        return super.attachBaseContext2(wrappedContext);
+}
+```
+
+可以看到，把ContextImpl封装了一层，导致activity获取到的baseContext是ContextThemeWrapper，然后**baseContext.baseContext才是ContextImpl**。
+
+这也导致了在AppCompatActivity中，未取消注册的广播接收器和未解绑的service，会导致内存泄漏。
+
+## ComponentActivity
+
+activity继承这个的话获取到的baseContext就是contextImpl
 

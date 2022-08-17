@@ -222,16 +222,6 @@ class ActivityThread  extends ClientTransactionHandler {
             });
         // --------
         } 
-    	 // 创建这个应用的Instrumentation，在第一部分用的是Laucnher桌面应用的Instru,Activity的Intru也是这个，等会传给Activity
-          mInstrumentation = new Instrumentation();
-          mInstrumentation.basicInit(this);
-          ContextImpl context = ContextImpl.createAppContext(
-               this, getSystemContext().mPackageInfo);
-         // 创建Application()实例，返回的是系统的那个类的实例，不是自己定义的例如MyApplication的实例。（还没搞懂，里面有判断是否创建）
-          mInitialApplication = context.mPackageInfo.makeApplication(true, null);
-    	// 调用Application的onCreate
-          mInitialApplication.onCreate()
-
 }
 ```
 
@@ -250,7 +240,7 @@ class ActivityThread  extends ClientTransactionHandler {
             int pid, int callingUid, long startSeq) {
             ...
             ProcessRecord app;
-                // ApplicationThread和Application绑定
+                // 进去创建Application
             thread.bindApplication(processName, appInfo, providerList,
                         instr2.mClass,
                         profilerInfo, instr2.mArguments,
