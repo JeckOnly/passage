@@ -138,7 +138,7 @@ Order1BroadcastReceiver--- com.jeckonly.broadcastdemo.orderAction
 Order2BroadcastReceiver--- com.jeckonly.broadcastdemo.orderAction
 ```
 
-###  
+
 
 ### 方法2
 
