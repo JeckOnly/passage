@@ -211,3 +211,87 @@ FileDescriptor objects, representing raw Linux file descriptor identifiers, can 
 
 A final class of methods are for writing and reading standard Java containers of arbitrary types. These all revolve around the writeValue(Object) and readValue(ClassLoader) methods which define the types of objects allowed. The container methods are writeArray(Object[]), readArray(ClassLoader), writeList(List), readList(List, ClassLoader), readArrayList(ClassLoader), writeMap(Map), readMap(Map, ClassLoader), writeSparseArray(SparseArray), readSparseArray(ClassLoader).
 
+
+
+## 5：实例分析
+
+### AMS
+
+```java
+// Instrumentation.java
+int result = ActivityManager.getService()
+                .startActivity(whoThread, who.getBasePackageName(), intent,
+                        intent.resolveTypeIfNeeded(who.getContentResolver()),
+                        token, target != null ? target.mEmbeddedID : null,
+                        requestCode, 0, null, options);
+```
+
+getService得到一个代理对象Proxy，利用这个对象可以调用服务端的实例对象，然后在通过Parcel把值传回来。
+
+```java
+public static IActivityManager getService() {
+        return IActivityManagerSingleton.get();
+    }
+
+    private static final Singleton<IActivityManager> IActivityManagerSingleton =
+            new Singleton<IActivityManager>() {
+                @Override
+                protected IActivityManager create() {
+                    final IBinder b = ServiceManager.getService(Context.ACTIVITY_SERVICE);// IBinder是BinderProxy实例
+                    final IActivityManager am = IActivityManager.Stub.asInterface(b);// 得到Stub.Proxy
+                    return am;
+                }
+            };
+```
+
+在网上找到源码，如下：
+
+```java
+ private static class Proxy implements android.app.IActivityManager
+        {
+            private android.os.IBinder mRemote;
+            Proxy(android.os.IBinder remote)
+            {
+                mRemote = remote;
+            }
+     
+     @Override public int startActivity(android.app.IApplicationThread caller, java.lang.String callingPackage, 	android.content.Intent intent, java.lang.String resolvedType, android.os.IBinder resultTo, java.lang.String 		resultWho, int requestCode, int flags, android.app.ProfilerInfo profilerInfo, android.os.Bundle options) 	throws android.os.RemoteException
+            {
+                android.os.Parcel _data = android.os.Parcel.obtain();
+                android.os.Parcel _reply = android.os.Parcel.obtain();
+                int _result;
+                try {
+                    _data.writeInterfaceToken(DESCRIPTOR);
+                    _data.writeStrongInterface(caller);
+                    _data.writeString(callingPackage);
+                    _data.writeTypedObject(intent, 0);
+                    _data.writeString(resolvedType);
+                    _data.writeStrongBinder(resultTo);
+                    _data.writeString(resultWho);
+                    _data.writeInt(requestCode);
+                    _data.writeInt(flags);
+                    _data.writeTypedObject(profilerInfo, 0);
+                    _data.writeTypedObject(options, 0);
+                    // 调用BInderProxy的方法
+                    boolean _status = mRemote.transact(Stub.TRANSACTION_startActivity, _data, _reply, 0);
+                    _reply.readException();
+                    _result = _reply.readInt();// 从Parcel读出值来
+                }
+                finally {
+                    _reply.recycle();
+                    _data.recycle();
+                }
+                return _result;
+            }
+}
+```
+
+暂时没搞懂的就这一行
+
+```java
+final IBinder b = ServiceManager.getService(Context.ACTIVITY_SERVICE);
+```
+
+在使用Service来接收服务端代理的时候，IBinder会在ServiceConnected的时候传过来，那这一句的本质是什么呢？
+
+目前了解的信息有，这个ServiceManager不是一个java文件，而是一个C++文件。
