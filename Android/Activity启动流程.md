@@ -73,7 +73,7 @@ public ActivityResult execStartActivity(
     }
 ```
 
-**IApplicationThread就是应用进程这边定义的接口，这边把实例传到系统进程那边，然后让系统进程做完自己的事情之后，再调用回来，这样就能回到应用进程。**
+**IApplicationThread就是应用进程这边定义的接口，这边把实例传到系统进程那边，然后让系统进程做完自己的事情之后，再调用回来，这样就能回到应用进程。**（学完Binder机制之后，看一下这句话错在哪）
 
 ```java
 /**
@@ -123,7 +123,7 @@ public class ActivityManagerService extends IActivityManager.Stub {
 
 ```
 
-IAM是系统那边的，然后实现是AMS，我们调用AMS的方法，就转到系统进程那边去了。
+IAM是系统那边的，然后实现是AMS，我们调用AMS的方法，就转到系统进程那边去了。（学完Binder机制再看这句话？）
 
 **开启系统进程之旅**
 
@@ -194,7 +194,7 @@ class ActivityThread  extends ClientTransactionHandler {
     // 2 
     private void attach(boolean system, long startSeq) {
        
-           // 重要：执行AMS方法，进入系统进程
+           // 重要，进入系统进程，去执行AMS
             final IActivityManager mgr = ActivityManager.getService();
             mgr.attachApplication(mAppThread, startSeq);// ——> 进入AMS
           
@@ -292,12 +292,12 @@ final boolean realStartActivityLocked(ActivityRecord r, ProcessRecord app,
 			 // Create activity launch transaction.
                 final ClientTransaction clientTransaction = ClientTransaction.obtain(app.thread,
                         r.appToken);
-                clientTransaction.addCallback(LaunchActivityItem.obtain())
+                clientTransaction.addCallback(LaunchActivityItem.obtain())// 1
 
                 // Set desired final state.
                 final ActivityLifecycleItem lifecycleItem;
                 if (andResume) {
-                    lifecycleItem = ResumeActivityItem.obtain(mService.isNextTransitionForward());
+                    lifecycleItem = ResumeActivityItem.obtain(mService.isNextTransitionForward());// 2
                 } else {
                     lifecycleItem = PauseActivityItem.obtain();
                 }

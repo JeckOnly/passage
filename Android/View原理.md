@@ -6,16 +6,35 @@
 
 Api 30，部分代码为了方便查看有的直接进行了内联处理，即如果调用的方法体很短，直接写进了调用处。
 
-## 一：DecorView的加载
+## SetContentView过程
 
-### 1：installDecor过程
+```java
+@Override
+    public void setContentView(int layoutResID) {
+        
+        if (mContentParent == null) {
+            installDecor();// part1
+        } else if (!hasFeature(FEATURE_CONTENT_TRANSITIONS)) {
+            mContentParent.removeAllViews();
+        }
+
+        mLayoutInflater.inflate(layoutResID, mContentParent);// part2
+
+    }
+```
+
+
+
+### 1：DecorView的加载
+
+DecorView的加载就是installDecor这个方法的执行。
 
 installDecor现在是PhoneWindow的一个方法。在installDecor里有两个重要的方法调用：
 
 1. generateDecor
 2. generateLayout
 
-#### generateDecor
+#### 1.1 generateDecor
 
 在这个方法里：
 
@@ -45,7 +64,9 @@ DecorView(Context context, int featureId, PhoneWindow phoneWindow,
 
 知识点：DecorView里引用的Window对象实例是PhoneWindow，这个PhoneWindow是由Activity创建的，经过很多步传到这里来。
 
-#### generateLayout
+> 一个PhoneWindow和一个DecorView一一对应
+
+#### 1.2 generateLayout
 
 ```java
 protected ViewGroup generateLayout(DecorView decor) {
@@ -119,7 +140,7 @@ protected ViewGroup generateLayout(DecorView decor) {
 
     mDecor.finishChanging();
 
-    return contentParent;
+    return contentParent;// 最后返回的是加载的布局文件中的id为“content”的FrameLayout
 }
 ```
 
@@ -277,7 +298,7 @@ screen_title_icons.xml
 
 **这个FrameLayout其实就是放我们自己写的那个activity的布局文件的。**
 
-#### 一些Transition设置
+#### 附：一些Transition设置
 
 ```java
 mEnterTransition = getTransition(mEnterTransition, null,
@@ -291,6 +312,18 @@ mReenterTransition = getTransition(mReenterTransition, USE_DEFAULT_TRANSITION,
 ```
 
 在installDecor这个方法的最后，还为DecorView的进出设置了一些转场动画。
+
+### 2：加载自己的布局文件
+
+在installDecor完成之后，PhoneWindow和一个DecorView绑定了，DecorView也已经有了自己的布局文件，这个布局之中有一个id为Content的子view，用来装载我们自己的布局文件。
+
+```
+ mLayoutInflater.inflate(layoutResID, mContentParent);
+```
+
+这个方法就不进去看了。主要的工作就是：使用XML解析器，把自己的布局文件解析成一棵View Tree，并**以id为content的FrameLayout作为根view**。
+
+> 这个过程只是解析和设置根view，并**没有**测量布局绘制过程。
 
 
 

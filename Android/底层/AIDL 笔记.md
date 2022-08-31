@@ -262,7 +262,7 @@ public static IActivityManager getService() {
                 int _result;
                 try {
                     _data.writeInterfaceToken(DESCRIPTOR);
-                    _data.writeStrongInterface(caller);
+                    _data.writeStrongInterface(caller);// 服务端那边收到的也是客户端Binder的代理
                     _data.writeString(callingPackage);
                     _data.writeTypedObject(intent, 0);
                     _data.writeString(resolvedType);
