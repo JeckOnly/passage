@@ -312,6 +312,23 @@ private void scheduleVsyncLocked() {
            mDisplayEventReceiver.scheduleVsync();// 安排在下一帧开始时发送Vsync信号
     // 信号到来时调用FrameDisplayEventReceiver的onSync方法然后调用Choreographer.doFrame()
     }
+
+// Schedules a single vertical sync pulse to be delivered when the next display frame begins.
+public void scheduleVsync() {
+      nativeScheduleVsync(mReceiverPtr);// 进入本地方法
+}
+
+// Called from native code.这个方法就沟通了底层代码和上层代码！！！！！
+    @SuppressWarnings("unused")
+private void dispatchVsync(long timestampNanos, int builtInDisplayId, int frame) {
+        onVsync(timestampNanos, builtInDisplayId, frame);
+}
+
+// 当接收到垂直同步脉冲时调用。接收者应该渲染一个帧，然后调用 scheduleVsync 来安排下一个垂直同步脉冲。
+@Override
+public void onVsync(long timestampNanos, int builtInDisplayId, int frame) {
+	// ......
+}
 ```
 
 所以流程如下：
@@ -319,6 +336,8 @@ private void scheduleVsyncLocked() {
 ![](../img/A226C3138ED66FB183D2307EDFEC33E7.png)
 
 最后在doFrame里回调`ViewRootImpl.doTraversal`。
+
+![IMG_0075(20220831-215531)](../img/IMG_0075(20220831-215531).PNG)
 
 [参考资料，详细](https://cloud.tencent.com/developer/article/1685247)
 
