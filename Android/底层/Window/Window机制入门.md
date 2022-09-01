@@ -75,7 +75,7 @@ public abstract class Window {
 
 
 
-## 创建PhoneWindow
+## 创建PhoneWindow(attach方法)
 
 首先一起看一下`PhoneWindow`是何时创建的。众所周知，`Activity` 启动时 `ActivityThread` 会调用 `performLaunchActivity()`方法创建一个`Activity`实例，紧接着会调用它的 `attach` 方法。
 
@@ -152,7 +152,7 @@ public abstract class Window {
 
 
 
-## 创建DecorView
+## 创建DecorView（setContentView/performCreate）
 
 当`PhoneWindow`及其内容管理者`WindowManagerImpl`创建好了以后，就需要关心管理者所管理的`View`树是何时创建了。也就是`DecorView`何时创建，这一点大部分读者都比较熟悉，在 Activity 中调用 `setContentView()`时，`DecorView`会被创建。
 
@@ -271,7 +271,7 @@ public final View getDecorView() {
 
 
 
-## 创建ViewRootImpl
+## 创建ViewRootImpl(在handleResumeActy的onResume之后)
 
 上面讲到在`View`树显示到界面之前，需要有一个`ViewRootImpl`负责指导它的绘制显示工作。那这个`ViewRootImpl`是何时创建并与`View`树关联的呢？
 
@@ -456,7 +456,7 @@ public final View getDecorView() {
                 // Schedule the first layout -before- adding to the window
                 // manager, to make sure we do the relayout before receiving
                 // any other events from the system.
-                //WMS添加窗口之前，进行一次测量布局工作，这样才能保证各类系统事件与View位置对应关系的准确性
+                // 安排三大流程！！！异步你懂的
                 requestLayout();
                 //通过mWindowSession通知WMS添加并显示窗口
                 res = mWindowSession.addToDisplay(mWindow, mSeq, mWindowAttributes,

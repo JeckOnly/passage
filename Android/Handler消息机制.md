@@ -30,15 +30,158 @@ Message这个类是对消息的封装，里面封装了处理者handler的指针
    m.next = null;
   ```
 
-## 2：
+## 2：分类
 
+在Handler中，Message分为3种：同步消息、异步消息、同步屏障消息，他们三者都是Message，只是属性有些区别。
 
+- 同步和异步的区别是标志位不同
+- 同步屏障的区别是target为null，其他两个类型的target不可能为null
+
+> 异步消息可以使用，但同步屏障已被@hide注释，无法使用。
+
+### 设置异步消息
+
+平常使用的Msg都是同步消息，其实还有异步消息。异步消息有两种设置方法。
+
+1. 一个异步的Handler发出的消息都是异步消息。判断异步Handler的字段：
+
+   ```java
+   final boolean mAsynchronous;// 在创建Handler时设置
+   ```
+
+2. 给消息的Flag字段设置：
+
+   ```java
+   // Message.java
+   public void setAsynchronous(boolean async) {
+           if (async) {
+               flags |= FLAG_ASYNCHRONOUS;
+           } else {
+               flags &= ~FLAG_ASYNCHRONOUS;
+           }
+   }
+   ```
+
+### 设置同步屏障
+
+```java
+ // MessageQueue.java
+// @hide
+ public int postSyncBarrier() {
+        return postSyncBarrier(SystemClock.uptimeMillis());
+    }
+
+    private int postSyncBarrier(long when) {
+        // Enqueue a new sync barrier token.
+        // We don't need to wake the queue because the purpose of a barrier is to stall it.
+        synchronized (this) {
+            final int token = mNextBarrierToken++;
+            final Message msg = Message.obtain();
+            msg.markInUse();
+            msg.when = when;
+            msg.arg1 = token;// 看，同步屏障消息target不设置，为null
+
+            Message prev = null;
+            Message p = mMessages;
+            if (when != 0) {
+                while (p != null && p.when <= when) {// 维护MessageQueue的顺序（根据when从大到小）
+                    prev = p;
+                    p = p.next;
+                }
+            }
+            if (prev != null) { // invariant: p == prev.next
+                msg.next = p;
+                prev.next = msg;
+            } else {
+                msg.next = p;
+                mMessages = msg;
+            }
+            return token;// 需要用这个token再移除同步屏障
+        }
+    }
+```
+
+可以看到它很简单，从这个方法我们可以知道如下：
+
+- 屏障消息和普通消息的区别在于**屏障没有tartget**，普通消息有target是因为它需要将消息分发给对应的target，而屏障不需要被分发，它就是**用来挡住普通消息来保证异步消息优先处理的**。
+- **屏障和普通消息一样可以根据时间来插入到消息队列中的适当位置，并且只会挡住它后面的同步消息的分发**
+- postSyncBarrier()返回一个int类型的数值，通过这个数值可以撤销屏障即removeSyncBarrier()。
+
+#### 同步屏障的作用
+
+```java
+Message next() {
+        int pendingIdleHandlerCount = -1; // -1 only during first iteration
+        int nextPollTimeoutMillis = 0;
+        for (;;) {
+          
+
+            nativePollOnce(ptr, nextPollTimeoutMillis);// ！！！！！！懂的都懂
+
+            synchronized (this) {
+                // Try to retrieve the next message.  Return if found.
+                final long now = SystemClock.uptimeMillis();
+                Message prevMsg = null;
+                Message msg = mMessages;
+                if (msg != null && msg.target == null) {
+                    // 发现一个同步屏障，先处理同步屏障后面的异步消息！！！
+                    // 这个循环找同步屏障后面的一个异步消息，遍历完也没有的话msg就指向null了
+                    do {
+                        prevMsg = msg;
+                        msg = msg.next;
+                    } while (msg != null && !msg.isAsynchronous());
+                }
+                if (msg != null) {
+                    // 如果有同步屏障，这里能进来，msg一定是异步消息！！
+                    if (now < msg.when) {
+                        // Next message is not ready.  Set a timeout to wake up when it is ready.
+                        nextPollTimeoutMillis = (int) Math.min(msg.when - now, Integer.MAX_VALUE);
+                    } else {
+                        // Got a message.
+                        mBlocked = false;
+                        if (prevMsg != null) {
+                            prevMsg.next = msg.next;
+                        } else {
+                            mMessages = msg.next;
+                        }
+                        msg.next = null;
+                        if (DEBUG) Log.v(TAG, "Returning message: " + msg);
+                        msg.markInUse();
+                        return msg;
+                    }
+                } else {
+                    // No more messages.
+                    nextPollTimeoutMillis = -1;// -1导致循环开始的阻塞
+                }
+            }
+            // While calling an idle handler, a new message could have been delivered
+            // so go back and look again for a pending message without waiting.
+            nextPollTimeoutMillis = 0;// 0不会导致阻塞
+        }
+    }
+```
+
+#### 同步屏障的添加时机
+
+因为同步屏障自己没有办法添加，所以来看看系统有没有添加同步屏障的操作，如果有，又是什么时候发生的。
+
+##### 1
+
+在VIewRootImpl的requestLayout中，调度scheduleTraversals，来调度三大流程，这时候放一个同步屏障。然后在下一帧到来的时候，在执行三大流程之前，移除同步屏障。
+
+> requestLayout的一个调用处是ViewRootImpl的setView，setView这个方法是在Activity的handleResumeActy的onResume之后把VRImpl和DecorView绑定时调用，可以看作主流程。
+
+<img src="../img/IMG_0076(20220901-093823).PNG" alt="IMG_0076(20220901-093823)" style="zoom:50%;" />
+
+##### 2
+
+这是另外两处地方。就这总结的三处地方，么有其他地方了。下面这个类也不知道干啥的。（看了下，发现挺底层的，在应用层忽略不计吧）
+
+![asdfsdfsddddd](../img/asdfsdfsddddd.png)
 
 # MessageQueue
 
-> 这里谈论的是处理同步消息的流程。异步消息处理看[segment](https://segmentfault.com/a/1190000039659685)
-
-
+> 这里谈论的是处理同步消息的流程。异步消息参考[segment](https://segmentfault.com/a/1190000039659685)，但上面也有总结。
 
 
 
