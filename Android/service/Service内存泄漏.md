@@ -54,7 +54,7 @@ public final IServiceConnection getServiceDispatcher(ServiceConnection c,
             if (sd == null) {
                 sd = new ServiceDispatcher(c, context, handler, flags);// context为activity
               
-                map.put(c, sd);// 这里ServiceConnection被引用
+                map.put(c, sd);// 这里ServiceConnection被引用!!!
             } else {
                 sd.validate(context, handler);
             }
