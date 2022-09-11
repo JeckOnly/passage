@@ -242,6 +242,13 @@ public Editor edit() {
 
 
 
+> 其实commit和apply都是阻塞线程的，只不过
+>
+> 1. commit阻塞的是执行commit这条命令的线程
+> 2. apply阻塞的是执行后台任务的HandlerThread的线程
+
+
+
 # 5：如何优化
 
 1：
@@ -254,7 +261,7 @@ public Editor edit() {
         editor.commit()// 阻塞
 ```
 
-由上面这个代码看出，xml文件不宜过大，不然会造成主线程的ANR。
+由上面这个代码看出，xml文件不宜过大，不然会造成ANR或卡顿。
 
 2：
 
@@ -267,7 +274,7 @@ public Editor edit() {
 优化建议:
 
 - 强烈建议不要在sp里面存储特别大的key/value, 有助于减少卡顿/anr
-- 请不要高频地使用apply, 尽可能地批量提交;commit直接在主线程操作, 更要注意了
+- 请不要高频地使用apply, 尽可能地批量提交;commit直接在当前线程操作, 更要注意了
 - 不要使用MODE_MULTI_PROCESS;
 - 高频写操作的key与高频读操作的key可以适当地拆分文件, 由于减少同步锁竞争;
 - 不要一上来就执行getSharedPreferences().edit(), 应该分成两大步骤来做, 中间可以执行其他代码.

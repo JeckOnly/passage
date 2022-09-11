@@ -70,8 +70,6 @@ startService(Intent(this@MainActivity2, MyService::class.java))
 stopService(Intent(this@MainActivity2, MyService::class.java))// 效果等同于service内调用stopSelf()
 ```
 
-
-
 ```
 2022-08-13 22:47:12.663 11054-11054/com.jeckonly.leakdemo D/MyService: ---onDestroy---
 ```
@@ -144,6 +142,12 @@ service没有启动时，调用bind，回调如下：
 ## 注：StopService不起作用
 
 Note that if a stopped service still has ServiceConnection objects bound to it with the BIND_AUTO_CREATE set, it will not be destroyed until all of these bindings are removed。
+
+## 注：Service自动Destroy
+
+不以绑定的方式，就以普通的startService的方式启动的Activity，在应用退到后台差不多1分钟之后，service会被调用destroy进行销毁并回调onDestroy。
+
+但以绑定的方式启动Service（测试了flag为auto create），应用退到后台并不会销毁Service，起码我等了半天也没销毁。
 
 
 

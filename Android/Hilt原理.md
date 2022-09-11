@@ -2,13 +2,9 @@
 
 ### 1：如何学习
 
-[Philipp的视频](https://www.youtube.com/watch?v=bbMsuI2p1DQ&t=87s&ab_channel=PhilippLackner) [文档](https://dagger.dev/hilt/)
+[Philipp的视频](https://www.youtube.com/watch?v=bbMsuI2p1DQ&t=87s&ab_channel=PhilippLackner) [文档](https://dagger.dev/hilt/) [Google视频概览](https://www.youtube.com/watch?v=VOvwAKTRJk8&ab_channel=AndroidDevelopers)
 
 看这个视频在学习一下组件的生命周期和多模块基本就可以掌握99%了。
-
-
-
-依赖注入是一种设计模式，解耦合，方便替换依赖具体实现。
 
 
 
@@ -20,9 +16,8 @@ Hilt根据transitive classpath生成一系列的Android Dagger components。这�
 
 对于gradle用户，hilt通过把注入代码置于一个生成的类，然后让源代码的类继承于这个类（通过修改字节码）来使自动注入在Android framework classes上得以实现。
 
-Hilt通过注解处理器，去除编写Components以及modules和Components的绑定的代码。
-
-Hilt通过Gradle 修改字节码的插件，去除了手写注入的代码。
+1. Hilt通过注解处理器（APT），去除编写Components以及modules和Components的绑定的代码。
+2. Hilt通过Gradle 修改字节码的插件，去除了手写注入的代码。
 
 
 
@@ -329,3 +324,6 @@ public abstract class Hilt_MainActivity extends ComponentActivity implements Gen
 示例：
 
 ![97742A9AC4B8EA36975D8484D4760245](../img/97742A9AC4B8EA36975D8484D4760245.png)
+
+
+

@@ -323,3 +323,26 @@ private @Nullable ParameterHandler<?> parseParameter(
     }
 ```
 
+
+
+## 二：反射带来的性能损耗
+
+之所以有这个问题，是发现，Hilt依赖初始化的默认线程是主线程，那么Retrofit创建具体service的时候要用到那么多反射，这个性能损耗如何？
+
+首先，发现Retrofit里有一个字段：
+
+```java
+// Retrofit.java
+final boolean validateEagerly;
+```
+
+**这个字段默认为false**
+
+这个字段会在`validateServiceInterface`里用到，
+
+1. True的话，会在创建具体service的时候就反射解析出所有方法（之前都在主线程中去创建，那自然就在主线程中去解析所有这些方法了）
+2. False的话，会在调用某个方法的时候才解析那个方法
+
+> 源码就那么一两个函数，不贴了。
+
+那看来，由于validateEagerly这个字段的默认值是False，所以Retrofit的创建和具体Service的创建在主线程之中也没有什么问题，并且由于**网络请求都会在子线程**中去做，那么反射解析这个过程**也是在子线程**中去做了，就更没有什么性能问题。

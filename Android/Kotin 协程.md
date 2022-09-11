@@ -33,7 +33,7 @@ suspend fun main() {
 }
 ```
 
-如果一个协程报错，然后try/catch没有包裹报错的代码，而是包裹报错的那个协程，那么exception并不会被catch到，也就是协程里面的exception没有re-throw，而是propagated up，沿着job的继承链向上传递。下面是上面代码的父子协程关系图：
+如果一个协程报错，然后try/catch**没有包裹报错的代码，而是包裹报错的那个协程**，那么exception并不会被catch到，也就是协程里面的exception没有re-throw，而是propagated up，沿着job的继承链向上传递。下面是上面代码的父子协程关系图：
 
 ![代码的协程继承关系](https://i0.wp.com/www.lukaslechner.com/wp-content/uploads/2020/08/Screenshot-2020-08-25-at-10.51.22.png?w=792&ssl=1)
 
@@ -195,7 +195,9 @@ after 5 seconds
 Handle java.lang.RuntimeException: RuntimeException in nested coroutine in try/catch
 ```
 
-可以看到，async里面的报错，**立即**沿着Job继承链**上升**——propagated up，即使没调用await()，**并且也会**在await()处re-throw。如果topLevelScope的exceptionHandler1被去掉，那么会crash，因为没有handler捕获这个上升的报错。
+可以看到，async里面的报错，**立即**沿着Job继承链**上升**——propagated up，即使没调用await()，**并且也会**在await()处re-throw。
+
+如果topLevelScope的exceptionHandler1被去掉，那么会crash，因为没有handler捕获这个上升的报错。
 
 ```
 Exception in thread "DefaultDispatcher-worker-3" java.lang.RuntimeException: RuntimeException in nested coroutine

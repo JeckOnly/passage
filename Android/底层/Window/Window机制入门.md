@@ -53,7 +53,21 @@ public abstract class Window {
         }
         mWindowManager = ((WindowManagerImpl)wm).createLocalWindowManager(this);
     }
+    
 }
+
+// WindowManagerImpl.java   
+// 这是在源码网站上copy过来的
+public WindowManagerImpl createLocalWindowManager(Window parentWindow) {
+        return new WindowManagerImpl(mContext, parentWindow, mWindowContextToken);
+    }
+// 在sdk上点击跳转却是下面这个，这个是复用WMImpl实例的，因为直接返回this，经验证WMImpl并没有复用
+public WindowManagerImpl createLocalWindowManager(Window parentWindow) {
+        Bridge.getLog().fidelityWarning(ILayoutLog.TAG_UNSUPPORTED,
+                "The preview does not support multiple windows.",
+                null, null, null);
+        return this;
+    }
 ```
 
 所以，不管`Window`的实现类是不是`PhoneWindow`，它都会有一个它自己的管理者`WindowManager`管理它的内部。
@@ -61,6 +75,10 @@ public abstract class Window {
 
 
 ![img](https://pic1.zhimg.com/v2-3f64bcb12fc444640b5cf1b7d3687e74_b.jpg)
+
+对于上面的代码段要注意一点：
+
+1. 目前Android平台上Window的实现类只有PhoneWindow。
 
 # Activity 与 PhoneWindow
 
@@ -136,7 +154,7 @@ public abstract class Window {
 //: WindowManagerImpl.java
 
     public WindowManagerImpl createLocalWindowManager(Window parentWindow) {
-        return new WindowManagerImpl(mContext, parentWindow);
+        return new WindowManagerImpl(mContext, parentWindow);// ？
     }
 ```
 
@@ -267,7 +285,7 @@ public final View getDecorView() {
 
 <img src="../../../img/alsdjflsjdf.png" alt="alsdjflsjdf" style="zoom:25%;" />
 
-**所以DecorView要么在onCreate中会被安装，要么在onCreate之后自动安装。**
+**所以DecorView要么在onCreate中会被安装(调用setContentView)，要么在onCreate之后自动安装。**
 
 
 
