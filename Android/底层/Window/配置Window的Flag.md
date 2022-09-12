@@ -43,9 +43,11 @@ Window有很多种类型，比如应用程序窗口、输入法窗口、PopupWin
 - Sub Window
 - System Window
 
-举例说明一下，Activity就是一个典型的应用Window；PopupWindow就是一个Sub Window，Sub Window不能单独存在，必须附着在其他Window上才可以；系统Window包括Toast、输入法窗口、系统音量条等
+举例说明一下，Activity就是一个典型的Application Window；PopupWindow就是一个Sub Window，Sub Window不能单独存在，必须附着在其他Window上才可以；System Window包括Toast、输入法窗口、系统音量条等
 
-这三种Window在显示上面有层级之分，具体表现在Type属性的值不同。应用Window的Type值范围为[1,99]，子Window的Type值范围[1000,1999]，系统Window的Type值范围[2000,2999]。Type值越大的Window会显示在越上层。
+这三种Window在显示上面有层级之分，具体表现在Type属性的值不同。应用Window的Type值范围为[1,99]，子Window的Type值范围[1000,1999]，系统Window的Type值范围[2000,2999]。
+
+覆盖关系为：System Window > Sub Window > Application Window
 
 下面来分析Activity的布局的Type、Dialog的Type、PopUpWindow的Type、Toast的Type：
 
@@ -65,4 +67,7 @@ params.type = WindowManager.LayoutParams.TYPE_TOAST;// int为2005
 
 ```
 
-所以Dialog显示在Activity布局上和Toast显示在Dialog布局上的本质就是如此。
+所以Dialog显示在Activity布局上和Toast显示在Dialog布局上的**覆盖关系的本质**就是如此。
+
+> 事实上，覆盖关系并不是数字越大就在越上面，只能说这三个分类大概是这样覆盖，而某个分类里面并不是数字大的覆盖数字小的。要留意那些flag的注释。
+

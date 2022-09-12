@@ -1,4 +1,4 @@
-以ReentrantLock，非公平锁为例。
+以ReentrantLock，非公平锁为例。只分析正常的流程。
 
 # AQS框架
 
@@ -53,7 +53,7 @@ waitStatus主要是用于表示节点的状态。默认是0，如果是SIGNAL，
 
 
 
-## <img src="../img/8885266.png" alt="8885266" style="zoom:50%;" />
+<img src="../img/8885266.png" alt="8885266" style="zoom:50%;" />
 
 抢到执行权的线程，不会创建节点进入阻塞队列。
 
@@ -93,21 +93,35 @@ final boolean nonfairTryAcquire(int acquires) {
         }
 
 
-// 1：因为是第一个阻塞的线程，还没有头节点，先创建头节点
+// 1：因为是第一个阻塞的线程，头节点、尾节点都为空，先创建头节点
 // 2：创建头节点后把自己插在头节点后面
 private Node addWaiter(Node mode) {
-        Node node = new Node(mode);
+        Node node = new Node(Thread.currentThread(), mode);
+        // Try the fast path of enq; backup to full enq on failure
+        Node pred = tail;
+        if (pred != null) {// fast path
+            node.prev = pred;
+            if (compareAndSetTail(pred, node)) {
+                pred.next = node;
+                return node;
+            }
+        }
+        enq(node);// 进入
+        return node;
+    }
 
-        for (;;) {
-            Node oldTail = tail;
-            if (oldTail != null) {
-                U.putObject(node, Node.PREV, oldTail);
-                if (compareAndSetTail(oldTail, node)) {
-                    oldTail.next = node;
-                    return node;
-                }
+    private Node enq(final Node node) {
+        for (;;) {// 循环两遍，一遍创建头节点，一遍插入
+            Node t = tail;
+            if (t == null) { // Must initialize
+                if (compareAndSetHead(new Node()))
+                    tail = head;
             } else {
-                initializeSyncQueue();
+                node.prev = t;
+                if (compareAndSetTail(t, node)) {
+                    t.next = node;
+                    return t;
+                }
             }
         }
     }
@@ -116,6 +130,10 @@ private Node addWaiter(Node mode) {
 执行完addWaiter后链表如下：
 
 <img src="../img/IMG_0066(20220830-102408).PNG" alt="IMG_0066(20220830-102408)" style="zoom:50%;" />
+
+
+
+
 
 再执行acquireQueued.
 

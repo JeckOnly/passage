@@ -145,9 +145,11 @@ Note that if a stopped service still has ServiceConnection objects bound to it w
 
 ## 注：Service自动Destroy
 
-不以绑定的方式，就以普通的startService的方式启动的Activity，在应用退到后台差不多1分钟之后，service会被调用destroy进行销毁并回调onDestroy。
+不以绑定的方式，就以普通的startService的方式启动的Service，在应用退到后台差不多1分钟之后，service会被调用destroy进行销毁并回调onDestroy。
 
 但以绑定的方式启动Service（测试了flag为auto create），应用退到后台并不会销毁Service，起码我等了半天也没销毁。
+
+然后测试一下以普通的startService的方式启动的Service，但在**另一个进程**，来看看是否service过一会就被销毁。结果同样过一会就被销毁了。
 
 
 
