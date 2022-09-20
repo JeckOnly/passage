@@ -247,6 +247,34 @@ public Editor edit() {
 > 1. commit阻塞的是执行commit这条命令的线程
 > 2. apply阻塞的是执行后台任务的HandlerThread的线程
 
+对于多个apply的任务，只要把最新的那个来写入磁盘就行
+
+```java
+        if (fileExists) {
+            boolean needsWrite = false;
+
+            // Only need to write if the disk state is older than this commit
+            if (mDiskStateGeneration < mcr.memoryStateGeneration) {
+                if (isFromSyncCommit) {
+                    needsWrite = true;
+                } else {
+                    synchronized (mLock) {
+                        // No need to persist intermediate states. Just wait for the latest state to
+                        // be persisted.
+                        // 翻译：没有必要向磁盘写入中间过程
+                        if (mCurrentMemoryStateGeneration == mcr.memoryStateGeneration) {
+                            needsWrite = true;
+                        }
+                    }
+                }
+            }
+
+            if (!needsWrite) {
+                mcr.setDiskWriteResult(false, true);
+                return;
+            }
+```
+
 
 
 # 5：如何优化

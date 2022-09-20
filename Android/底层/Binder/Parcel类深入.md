@@ -1,0 +1,1 @@
+Parcel.java只是一个壳，里面的代码几乎都是native方法，真正的实现是：frameworks/native/libs/binder/include/binder/Parcel.h

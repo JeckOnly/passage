@@ -329,6 +329,8 @@ mReenterTransition = getTransition(mReenterTransition, USE_DEFAULT_TRANSITION,
 
 ## 二：事件分发机制
 
+> 这个流程存疑了
+
 ### 1：Activity对事件的分发
 
 ```java
@@ -667,6 +669,108 @@ measureChildWithMargins
 
 
 在draw中，会调用onDraw和dispatchDraw，这两个方法在View中默认都没有实现，自定义View需要重写onDraw方法，自定义ViewGroup一般不会涉及到draw这个环节的修改，dispatchDraw一般不用修改，比如FrameLayout和LinearLayout都没有重写onDraw和dispatchDraw。
+
+### 深入了解performTraversal
+
+大致结构
+
+```java
+ private void performTraversals() {
+        if (layoutRequested) {
+            windowSizeMayChange |= measureHierarchy(host, lp, res,//1 内部三个performMeasure
+                    desiredWindowWidth, desiredWindowHeight);
+        }
+
+        if (mApplyInsetsRequested) {
+
+            if (mLayoutRequested) {
+                // Short-circuit catching a new layout request here, so
+                // we don't need to go through two layout passes when things
+                // change due to fitting system windows, which can happen a lot.
+                windowSizeMayChange |= measureHierarchy(host, lp,//2 内部三个performMeasure
+                        mView.getContext().getResources(),
+                        desiredWindowWidth, desiredWindowHeight);
+            }
+        }
+
+
+        if (mFirst || windowShouldResize || insetsChanged ||
+                viewVisibilityChanged || params != null || mForceNextWindowRelayout) {
+            if () {
+                // Ask host how big it wants to be
+                performMeasure(childWidthMeasureSpec, childHeightMeasureSpec);// 3
+                if (measureAgain) {// lp的horizontalWeight不为0才进来，可是它默认为0，也没找到修改的点
+                    performMeasure()// 4
+                }
+            }
+        }
+
+        if (didLayout) {
+            performLayout(lp, mWidth, mHeight);// 5 内部有使用measureHierarchy
+        }
+
+        if (!cancelDraw && !newSurface) {
+            performDraw();// 6
+        } else {
+            if (isViewVisible) {
+                // Try again
+                scheduleTraversals();
+            } else if (mPendingTransitions != null && mPendingTransitions.size() > 0) {
+            }
+        }
+    }
+```
+
+```java
+private boolean measureHierarchy(final View host, final WindowManager.LayoutParams lp,
+            final Resources res, final int desiredWindowWidth, final int desiredWindowHeight) {
+
+        boolean goodMeasure = false;
+    // Activity的流程其实不会进入
+        if (lp.width == ViewGroup.LayoutParams.WRAP_CONTENT) {
+            // On large screens, we don't want to allow dialogs to just
+            // stretch to fill the entire width of the screen to display
+            // one line of text.  First try doing the layout at a smaller
+            // size to see if it will fit.
+         
+         
+            if (baseSize != 0 && desiredWindowWidth > baseSize) {
+                childWidthMeasureSpec = getRootMeasureSpec(baseSize, lp.width);
+                childHeightMeasureSpec = getRootMeasureSpec(desiredWindowHeight, lp.height);
+                performMeasure(childWidthMeasureSpec, childHeightMeasureSpec);// 1
+              
+                if ((host.getMeasuredWidthAndState()&View.MEASURED_STATE_TOO_SMALL) == 0) {
+                    goodMeasure = true;
+                } else {
+                    // Didn't fit in that size... try expanding a bit.
+                    baseSize = (baseSize+desiredWindowWidth)/2;
+                 
+                    childWidthMeasureSpec = getRootMeasureSpec(baseSize, lp.width);
+                    performMeasure(childWidthMeasureSpec, childHeightMeasureSpec);// 2
+                   
+                    if ((host.getMeasuredWidthAndState()&View.MEASURED_STATE_TOO_SMALL) == 0) {
+                       
+                        goodMeasure = true;
+                    }
+                }
+            }
+        }
+
+    // Activity的话走这里呢
+        if (!goodMeasure) {
+            childWidthMeasureSpec = getRootMeasureSpec(desiredWindowWidth, lp.width);
+            childHeightMeasureSpec = getRootMeasureSpec(desiredWindowHeight, lp.height);
+            performMeasure(childWidthMeasureSpec, childHeightMeasureSpec);// 3
+            if (mWidth != host.getMeasuredWidth() || mHeight != host.getMeasuredHeight()) {
+                windowSizeMayChange = true;
+            }
+        }
+
+   
+
+        return windowSizeMayChange;
+    }
+```
 
 
 

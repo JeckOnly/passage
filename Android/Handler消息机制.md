@@ -173,6 +173,10 @@ Message next() {
 
 <img src="../img/IMG_0076(20220901-093823).PNG" alt="IMG_0076(20220901-093823)" style="zoom:50%;" />
 
+我觉得在这里同步屏障的作用是：不要在执行performTraversal之前有开始执行同步任务，因为有可能有些主线程同步任务要做很久（程序员把一些过于耗时的任务post给绑定主线程的handler），那么这个任务肯定会推迟performTraversal的执行，导致jank卡顿，掉帧。所以为了确保performTraversal可以准时执行，就不允许在这之前主线程去执行同步任务。
+
+
+
 ##### 2
 
 这是另外两处地方。就这总结的三处地方，么有其他地方了。下面这个类也不知道干啥的。（看了下，发现挺底层的，在应用层忽略不计吧）
@@ -358,7 +362,7 @@ static class MyHandler extends Handler {
             //此字段保证同时间多次更改只会刷新一次，例如TextView连续两次setText(),也只会走一次绘制流程
             mTraversalScheduled = true;
             //添加同步屏障，屏蔽同步消息，保证VSync到来立即执行绘制。
-            //这个时候开始，绑定主线程的Handler不能接收到同步消息，只能处理异步消息
+            //这个时候开始，绑定主线程的Handler不能处理到同步消息，只能处理异步消息
             mTraversalBarrier = mHandler.getLooper().getQueue().postSyncBarrier();
             //mTraversalRunnable是TraversalRunnable实例，最终走到run()，也即doTraversal();
             mChoreographer.postCallback(

@@ -285,7 +285,7 @@ public final View getDecorView() {
 
 <img src="../../../img/alsdjflsjdf.png" alt="alsdjflsjdf" style="zoom:25%;" />
 
-**所以DecorView要么在onCreate中会被安装(调用setContentView)，要么在onCreate之后自动安装。**
+**所以DecorView要么在onCreate中会被安装(调用setContentView)，要么在onCreate之后自动安装。**在前一种情况，DecorView下还有一棵子树，但后一种情况就没有了。
 
 
 
@@ -439,8 +439,9 @@ public final View getDecorView() {
 
 通过后面的学习可以了解到,`ViewRootImpl`指挥`View`树的这些**工作**包含：`View`树的显示、测量绘制、同步刷新以及事件分发。
 
-惊不惊喜，意不意外？？？`ViewRootImpl`原来这么重要，传说的众`View`之父呀！
-仔细想一下，就知道其实没什么意外的~~~
+> setView方法在其他文章分析
+> 
+>
 
 
 
