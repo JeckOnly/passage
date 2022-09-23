@@ -226,7 +226,8 @@ FileDescriptor objects, representing raw Linux file descriptor identifiers, can 
 
 A final class of methods are for writing and reading standard Java containers of arbitrary types. These all revolve around the writeValue(Object) and readValue(ClassLoader) methods which define the types of objects allowed. The container methods are writeArray(Object[]), readArray(ClassLoader), writeList(List), readList(List, ClassLoader), readArrayList(ClassLoader), writeMap(Map), readMap(Map, ClassLoader), writeSparseArray(SparseArray), readSparseArray(ClassLoader).
 
-
+> 上面提到的种种write/read方法，最后都是调用到了native的相应方法去实现。
+>
 
 ## 5：实例分析
 
@@ -301,12 +302,10 @@ public static IActivityManager getService() {
 }
 ```
 
-暂时没搞懂的就这一行
+这一行
 
 ```java
 final IBinder b = ServiceManager.getService(Context.ACTIVITY_SERVICE);
 ```
 
-在使用Service来接收服务端代理的时候，IBinder会在ServiceConnected的时候传过来，那这一句的本质是什么呢？
-
-目前了解的信息有，这个ServiceManager不是一个java文件，而是一个C++文件。
+ServiceManager是对ServiceManagerProxy的封装，获得的是一个BinderProxy对象（BinderProxy继承IBinder）。
