@@ -8,6 +8,8 @@
 
 :heavy_exclamation_mark:本仓库的随笔分类随意，因为本来没想设置目录的，所以后来增加的目录没有包含本应属于那个目录的文章。
 
+:bread:食用贴士：文章左上角可以点开看大纲，这样看更容易跟着思路走。​
+
 :arrow_right:有问题提issue.
 
 :congratulations::congratulations::congratulations::congratulations:如果对你有帮助，可以**点个star**:star:让我知道你有收获:congratulations::congratulations::congratulations::congratulations:
