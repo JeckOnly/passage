@@ -14,6 +14,12 @@ if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 
 [文档链接](https://developer.android.com/training/system-ui/status#behind)
 
+新方法：
+
+```kotlin
+WindowCompat.setDecorFitsSystemWindows(window, false)
+```
+
 
 
 

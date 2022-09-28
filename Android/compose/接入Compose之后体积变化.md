@@ -4,7 +4,7 @@
 
 [文档](https://developer.android.com/studio/debug/apk-analyzer)，有一个视频可以了解。
 
-[如何所减应用大小](https://developer.android.com/topic/performance/reduce-apk-size)
+[如何缩减应用大小](https://developer.android.com/topic/performance/reduce-apk-size)
 
 ## 一：接入前
 
@@ -26,7 +26,7 @@ build是成功了。来试一试把一个text view改成ComposeView。
 
 拿自己平时的demo来试。
 
-# 三：demo前后对比
+## 三：demo前后对比
 
 顺利接入，也成功跑起来，并且把一个View换成ComposeView之后用setContent来把UI画出来也没有问题。
 
