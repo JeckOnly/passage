@@ -59,6 +59,16 @@ TransferQueue的一个基于链表的实现。
 
 > A blocking queue in which each insert operation must wait for a corresponding remove operation by another thread, and vice versa.
 
+# 六：PriorityBlockingQueue
+
+PriorityQueue的thread-safe版本，队列中元素是排好序的，队列头的元素是最小的元素。
+
+
+
+# 七：DelayQueue
+
+队列中的元素有一个 **delay**值，随时间变小，在为0之前都不能取出来。队列的头部是过期最久（delay变为0最久）的元素。如果没有过期的元素（所有元素的delay都 > 0），则没有head，并且 poll 将返回 null。
+
 
 
 
