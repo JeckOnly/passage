@@ -175,28 +175,26 @@ var resultList = mutableListOf<WifiSafeCheckItem>()
 
 ### 1：collect vs collectlatest
 
-#### 先来了解collect:
+#### collect
 
 ```kotlin
-suspend fun main() {
-    val flow = flow<Int> {
+val flow = flow<Int> {
         var currentValue = 10
         println("before send$currentValue")
         emit(currentValue)
         println("after send$currentValue")
         while (currentValue > 0) {
-            delay(5000)
             currentValue--
             println("before send$currentValue")
             emit(currentValue)
             println("after send$currentValue")
         }
-    }.collect {
+    }.collect{//
         println("collect开始$it")
+        delay(5000)
         println(it)
         println("collect结束$it")
     }
-}
 ```
 
 它的输出是：
@@ -213,96 +211,40 @@ collect开始9
 collect结束9
 after send9
 
-**emit是一个挂起函数，当调用了emit之后，会跳转到collect去执行，当collect执行完之后，再从emit处恢复（resume）**，所以如果在collect中增加一个delay（5000）函数，那么计数器的时间将会延长一倍。
+before send8
+collect开始8
+8
+collect结束8
+after send8
 
-#### 再来了解collectLatest
+**emit是一个挂起函数，当调用了emit之后，会跳转到collect去执行，当collect执行完之后，再从emit处恢复（resume）**。
+
+执行流程：collect执行完之后再从emit处恢复执行。
+
+
+
+
+
+#### collectLatest
 
 ```kotlin
-suspend fun main() {
-    val flow = flow<Int> {
+val flow = flow<Int> {
         var currentValue = 10
         println("before send$currentValue")
         emit(currentValue)
         println("after send$currentValue")
         while (currentValue > 0) {
-            delay(5000)
             currentValue--
             println("before send$currentValue")
             emit(currentValue)
             println("after send$currentValue")
         }
-    }.collectLatest {
-        delay(1000)
+    }.collectLatest {// 和上面代码相比仅仅终端处理符号不同
         println("collect开始$it")
+        delay(5000)
         println(it)
         println("collect结束$it")
     }
-}
-```
-
-输出结果为：
-before send10
-after send10
-collect开始10
-10
-collect结束10
-
-before send9
-after send9
-collect开始9
-9
-collect结束9
-
-**区别1：当emit执行之后，collect会执行，但上游并没有挂起，而是继续在emit之后执行**，在这段代码中，因为collect中有delay函数，所以after send就先于 collect开始 打印了出来。（只有collect里遇上了**挂起函数**协程才会在在上游恢复执行）
-
-```kotlin
-suspend fun main() {
-    val flow = flow<Int> {
-        var currentValue = 10
-        println("before send$currentValue")
-        emit(currentValue)
-        println("after send$currentValue")
-        while (currentValue > 0) {
-            delay(1000)
-            currentValue--
-            println("before send$currentValue")
-            emit(currentValue)
-            println("after send$currentValue")
-        }
-    }.collectLatest {
-        println("collect开始$it")
-        while (true) {
-		// 阻塞住
-        }
-        println(it)
-        println("collect结束$it")
-    }
-}
-```
-
-再看一个例子：
-
-```kotlin
-suspend fun main() {
-    val flow = flow<Int> {
-        var currentValue = 10
-        println("before send$currentValue")
-        emit(currentValue)
-        println("after send$currentValue")
-        while (currentValue > 0) {
-            delay(1000)// 延迟1000
-            currentValue--
-            println("before send$currentValue")
-            emit(currentValue)
-            println("after send$currentValue")
-        }
-    }.collectLatest {// 使用collectLatest
-        println("collect开始$it")
-        delay(2000)// 延迟2000
-        println(it)
-        println("collect结束$it")
-    }
-}
 ```
 
 输出结果为：
@@ -313,26 +255,30 @@ after send10
 before send9
 collect开始9
 after send9
+
 ...
+
+before send1
+collect开始1
+after send1
+
 before send0
 collect开始0
 after send0
 0
 collect结束0
 
-当 collect开始 之后，延迟了2000，还没来得及打印计数，上游又执行了emit，结果下游的块（block）直接被取消了。**区别2：当有新的值被emit，下游collectLatest没有被执行完会被cancel取消**，所以最后只有0这个计数可以被打印出来。
-**补充：这里取消的意思是给协程block发送cancel的指令，因为协程的取消是合作式的，如果block执行着delay（可取消函数），那么协程block会取消，但假如我把delay换成一个死循环，那么block不会退出**
+**上游并没有等下游collectLatest执行完才继续往下执行，而是直接往下执行，并且emit new value的时候，正在处理旧值的下游block会被cancelled**
 
-总结起来就是：collectLatest是
+**但这个取消机制是合作式的取消，我把delay(5000)换成一个while死循环，结果下游死循环，上游也没有从emit处resume**，[官方文档](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/collect-latest.html)并没有说到这种情况。
 
-1. 不阻塞flow builder块的，前提是终端要执行挂起函数
-2. 当下一个值来到终端会收到cancel指令，但取消是合作式的取消。
+> :smiley:delay可换成yield达到同样的效果，yield有检查取消的作用。
 
 ### 2：Flow Operator
 
 Flow和Rxjava类似，都有很多转换符。
 
-#### 中游
+#### 转换操作符
 
 ##### 筛选
 
@@ -346,9 +292,9 @@ Flow和Rxjava类似，都有很多转换符。
 
 1. onEach
 
-##### 缓冲
+#### 缓冲
 
-###### buffer
+##### buffer
 
 buffer是一个很有意思的操作符，看一个例子：
 
@@ -412,7 +358,9 @@ flow<String> {
 客人收到西瓜
 客人吃完西瓜
 
-###### conflate
+#### 合并
+
+##### conflate
 
 conflate和buffer类似（conflate是buffer容量为1，策略为丢弃最老值的简写），但功能有些许不同，还是上面那个例子，把buffer改成conflate：
 
@@ -440,9 +388,31 @@ conflate().collect {
 
 
 
-#### 下游（终结符）
+#### 处理最新值
 
-1. count 计数
+##### collectLatest
+
+
+
+#### 组合多个流
+
+##### Zip
+
+##### Combile
+
+combile可以把要组合的流理解成key，然后任意一个key更新（任意一个流有新值），就往combile后面执行。
+
+
+
+#### 末端操作符
+
+末端操作符是在流上用于启动流收集的*挂起函数*。 [collect](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/collect.html) 是最基础的末端操作符，但是还有另外一些更方便使用的末端操作符：
+
+- 转化为各种集合，例如 [toList](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/to-list.html) 与 [toSet](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/to-set.html)。
+- 获取第一个（[first](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/first.html)）值与确保流发射单个（[single](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/single.html)）值的操作符。
+- 使用 [reduce](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/reduce.html) 与 [fold](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/fold.html) 将流规约到单个值。
+
+##### count 计数
 
 ```kotlin
 val countResult = flow<Int> {
@@ -463,11 +433,11 @@ val countResult = flow<Int> {
     println("$countResult")// 共有6个偶数
 ```
 
-2. reduce累加迭代
-   从第一个元素开始累加值，并将操作应用于当前累加器值和每个元素。如果流为空，则抛出 NoSuchElementException。
-3. fold带初始值的累加迭代
+##### reduce累加迭代
 
-[掘金文章参考](https://juejin.cn/post/6854573221648269320#heading-13 "掘金文章参考")
+##### fold带初始值的累加迭代
+
+
 
 ## 三：StateFlow vs ShareFlow vs Flow
 
