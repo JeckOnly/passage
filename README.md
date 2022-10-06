@@ -14,9 +14,9 @@
 
 :arrow_right:有问题提issue.
 
-:congratulations::congratulations::congratulations::congratulations:如果对你有帮助，可以**点个star**:star:让我知道你有收获:congratulations::congratulations::congratulations::congratulations:
+:congratulations::congratulations::congratulations::congratulations:**star**:star::congratulations::congratulations::congratulations::congratulations:
 
-目前还没有工作，如果有工作机会wechat：13580049880联系我:eyes:。
+
 
 
 
