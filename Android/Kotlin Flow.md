@@ -1,6 +1,6 @@
-# Kotlin Flow
 
-## 一：Flow的概念
+
+# 一：Flow的概念
 
 Flow流的概念感觉类似于Java的响应式编程，下面看两段代码：
 
@@ -171,11 +171,11 @@ var resultList = mutableListOf<WifiSafeCheckItem>()
 1. Flow用emit来发送，collect来收集
 2. Rxjava用onNext来发送，在subscribe收集
 
-## 二：Flow的语法
+# 二：Flow的语法
 
-### 1：collect vs collectlatest
+## 1：collect vs collectlatest
 
-#### collect
+### collect
 
 ```kotlin
 val flow = flow<Int> {
@@ -225,7 +225,7 @@ after send8
 
 
 
-#### collectLatest
+### collectLatest
 
 ```kotlin
 val flow = flow<Int> {
@@ -274,27 +274,27 @@ collect结束0
 
 > :smiley:delay可换成yield达到同样的效果，yield有检查取消的作用。
 
-### 2：Flow Operator
+## 2：Flow Operator
 
 Flow和Rxjava类似，都有很多转换符。
 
-#### 转换操作符
+### 转换操作符
 
-##### 筛选
+#### 筛选
 
 1. filter
 
-##### 映射
+#### 映射
 
 1. map
 
-##### 额外操作
+#### 额外操作
 
 1. onEach
 
-#### 缓冲
+### 缓冲
 
-##### buffer
+#### buffer
 
 buffer是一个很有意思的操作符，看一个例子：
 
@@ -358,9 +358,9 @@ flow<String> {
 客人收到西瓜
 客人吃完西瓜
 
-#### 合并
+### 合并
 
-##### conflate
+#### conflate
 
 conflate和buffer类似（conflate是buffer容量为1，策略为丢弃最老值的简写），但功能有些许不同，还是上面那个例子，把buffer改成conflate：
 
@@ -388,23 +388,133 @@ conflate().collect {
 
 
 
-#### 处理最新值
+### 处理最新值
 
-##### collectLatest
+#### collectLatest
 
 
 
-#### 组合多个流
+### 组合多个流
 
-##### Zip
+#### Zip
 
-##### Combile
+一一对应找配对，可以用下面的例子来尝试
+
+#### Combile
 
 combile可以把要组合的流理解成key，然后任意一个key更新（任意一个流有新值），就往combile后面执行。
 
+```kotlin
+val nums = (1..3).asFlow().onEach { delay(50) } // 发射数字 1..3，间隔 300 毫秒
+val strs = flowOf("one", "two", "three").onEach { delay(60) } // 每 400 毫秒发射一次字符串
+val startTime = System.currentTimeMillis() // 记录开始的时间
+nums.combine(strs) { a, b -> "$a -> $b" } // 使用“combine”组合单个字符串
+    .collect { value -> // 收集并打印
+        println("$value at ${System.currentTimeMillis() - startTime} ms from start")
+    }
+```
+
+![image-20221007102650695](C:/Users/24502/AppData/Roaming/Typora/typora-user-images/image-20221007102650695.png)
+
+当flow1在50ms处来到的时候，发现flow2还没有值，于是什么也不做。
+
+60ms处flow2有一个值来到，发现flow1的值是1，于是打印“1  one”
+
+100ms处flow1有一个值来到，发现flow2的值是one，于是打印“2  one”
+
+后面逻辑类似
+
+```kotlin
+1 -> one at 141 ms from start
+2 -> one at 199 ms from start
+2 -> two at 215 ms from start
+3 -> two at 262 ms from start
+3 -> three at 277 ms from start
+```
+
+（这毫秒值可以忽略的）
+
+### 展平流
+
+#### flattenConcat vs flattenMerge
+
+flattenMerge有一个并发值的参数，**默认16**，自定义的话需要大于0。flattenConcat就是flattenMerge并发值为1的特殊情况而已。
+
+这个并发值就是**并发执行的flow的数量**。看看并发值为1的时候：
+
+```kotlin
+val flowA = (1..5).asFlow().onEach { delay(20) }
+    val flowB = flowOf("one", "two", "three", "four", "five").onEach { delay(30) }
+
+    flowOf(flowA, flowB)
+        .flattenMerge(1)
+        .collect { println(it) }
+```
+
+```
+1
+2
+3
+4
+5
+one
+two
+three
+four
+five
+```
+
+按顺序把flow1发射完再处理flow2。因为并发度为1，就只能允许一个flow执行。一个执行完再到下一个，concat英文就是“连接”。
+
+把它改成2试试。
+
+```
+1
+one
+2
+two
+3
+three
+4
+four
+5
+five
+```
+
+可以看到，这两个流是并发在跑。
+
+**那改成3呢，没有效果，因为这里就两个flow，设置并发度大于2都一样**。
+
+> 你跑上面那个并发度为2的例子不一定会得到我的结果，因为是并发执行，这些ms的说不准。
+
+#### flatMapConcat vs flatMapMerge
+
+flatMapConcat = map + flattenConcat
+
+flatMapMerge = map + flattenMerge
+
+```kotlin
+public fun <T, R> Flow<T>.flatMapConcat(transform: suspend (value: T) -> Flow<R>): Flow<R> =
+    map(transform).flattenConcat()
+
+public fun <T, R> Flow<T>.flatMapMerge(
+    concurrency: Int = DEFAULT_CONCURRENCY,
+    transform: suspend (value: T) -> Flow<R>
+): Flow<R> =
+    map(transform).flattenMerge(concurrency)
+```
+
+> 如果理解了flattenXXX，就不难理解这两个。说白了，先map映射一些flow出来然后再展开它们。
 
 
-#### 末端操作符
+
+#### flatMapLatest
+
+虽然也是flatMap开头，但其实和flattenXXX没有什么关系。对于上游的每一个值T，都映射成一个flow（flow<R>），然后下游collect的是这个flow<R>的值，如果flatMapLatest上游有新值来，就取消正在执行的flow<R>，生成一个新的flow<R>被下游collect。
+
+
+
+### 末端操作符
 
 末端操作符是在流上用于启动流收集的*挂起函数*。 [collect](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/collect.html) 是最基础的末端操作符，但是还有另外一些更方便使用的末端操作符：
 
@@ -412,7 +522,7 @@ combile可以把要组合的流理解成key，然后任意一个key更新（任�
 - 获取第一个（[first](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/first.html)）值与确保流发射单个（[single](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/single.html)）值的操作符。
 - 使用 [reduce](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/reduce.html) 与 [fold](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/fold.html) 将流规约到单个值。
 
-##### count 计数
+#### count 计数
 
 ```kotlin
 val countResult = flow<Int> {
@@ -433,13 +543,13 @@ val countResult = flow<Int> {
     println("$countResult")// 共有6个偶数
 ```
 
-##### reduce累加迭代
+#### reduce累加迭代
 
-##### fold带初始值的累加迭代
+#### fold带初始值的累加迭代
 
 
 
-## 三：StateFlow vs ShareFlow vs Flow
+# 三：StateFlow vs ShareFlow vs Flow
 
 ### Hot? Cold？
 
