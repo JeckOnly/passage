@@ -615,7 +615,7 @@ ViewGroup.java
 
 可以看到，
 
-1. 如果有onTouchListener，就先看看onTouchListener，假如它返回true，就跳过onTouchEvent了，返回false再判断onTouchEvent
+1. 如果有onTouchListener，就**先看看onTouchListener**，假如它返回true，就跳过onTouchEvent了，返回false**再判断onTouchEvent**
 2. dispatchTouchEvent决定这个view是否接收，不接收的话轮到下一个child view来判断亦或交给上一层。
 
 
