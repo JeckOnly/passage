@@ -31,3 +31,5 @@ dependencies {
 
 某种程度上比原来直观，没学之前我都不知道它们之间一个是属性一个是函数。
 
+其实后面就一些语法问题。再结合buildSrc进行一些全局配置，[迁移前后的代码可参考](https://github.com/JeckOnly/Pokemons)。可clone这个项目看具体的那个迁移的commit，对比前后代码。
+
