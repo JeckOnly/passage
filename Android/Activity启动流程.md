@@ -75,6 +75,8 @@ public ActivityResult execStartActivity(
 
 **IApplicationThread就是应用进程这边定义的接口，这边把实例传到系统进程那边，然后让系统进程做完自己的事情之后，再调用回来，这样就能回到应用进程。**（学完Binder机制之后，看一下这句话错在哪）
 
+> 系统进程调用的是Binder驱动提供的IApplicationThread的句柄
+
 ```java
 /**
  * System private API for communicating with the application.  This is given to
