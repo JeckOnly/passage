@@ -1,6 +1,6 @@
 :grinning:这是我学习Android开发所做的一些随笔。这个仓库主要有两类随笔：
 
-:one:完全原创。自己看书，看视频，看文档的图文总结:two_hearts:。
+:one:自己看书，看视频，看文档的图文总结:two_hearts:。
 
 :two:网络上的博文复制粘贴，并增加，删除，更新内容。因为网络上对某一个知识点已经有很不错的知识讲解，为了不画蛇添足以及方便查阅，故复制粘贴下来。但大多数文章我都会增加一些知识（原文讲解的不够详细:no_good:），删除一些内容（原文有错误:no_good:），更新内容（原文已过时:no_good:）。所以如果随笔有转载链接，尽量看这里的:couple_with_heart:。
 
@@ -12,9 +12,7 @@
 
 :bread:食用贴士2：如果图片看不了，可能是github解析有问题，建议clone到本地用Typora或其他Mardown阅读器看。
 
-:arrow_right:有问题提issue.
-
-:congratulations::congratulations::congratulations::congratulations:**star**:star::congratulations::congratulations::congratulations::congratulations:
+:arrow_right:有问题提issue
 
 
 

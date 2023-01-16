@@ -710,7 +710,7 @@ collect1:4
 3. stateflow和shareflow更新值的方式不同：`stateflow：flow.value = newValue`，`shareflow：flow.emit(newValue)`
 4. 当想新来的订阅者想收到SharedFlow之前的值的话，可以指定replay参数
 5. stateflow用来发送State Event，一般有关界面的State状态，shareflow用来发送one time event一次性事件。
-6. StateFlow的value如果通过**equal**判断相等的话，不会重新发送。例如int相等，data class每一个字段都相等。所以在StateFlow上引用distinctUntilChanged操作符是没有效果的，因为它自带buff。[operator disxxxxChanged](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/distinct-until-changed.html "operator disxxxxChanged")
+6. StateFlow的value如果通过**equal**判断相等的话，不会重新发送。例如int相等，data class每一个字段都相等。所以在StateFlow上引用distinctUntilChanged操作符是没有效果的，因为它自带buff。[operator disxxxxChanged](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/distinct-until-changed.html "operator disxxxxChanged") [kotlin文档](https://kotlinlang.org/api/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/-state-flow/)
 
 ### 拓展函数简化使用
 
