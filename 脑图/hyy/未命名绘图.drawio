@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" modified="2023-11-27T02:21:34.466Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" etag="V9U3L2XxXf03KQk6qAFY" version="22.1.4" type="github">
+<mxfile host="app.diagrams.net" modified="2023-11-27T02:42:16.287Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36" etag="U2jxVXT3y33HWbmt9iHq" version="22.1.4" type="github">
   <diagram name="第 1 页" id="lvjemA2xEv6mycSAy2Vi">
-    <mxGraphModel dx="2261" dy="738" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="3088" dy="738" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -173,6 +173,30 @@
         </mxCell>
         <mxCell id="GwlXa5Q_ITVcldn20HJ_-2" value="HlAppFeatureManager" style="whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
           <mxGeometry x="-750" y="630" width="230" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="GwlXa5Q_ITVcldn20HJ_-4" value="postEventGlobal" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="-977" y="910" width="147" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="GwlXa5Q_ITVcldn20HJ_-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="lztWq5X_nUzuxm9hb4JQ-45" target="GwlXa5Q_ITVcldn20HJ_-4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-680" y="910" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="GwlXa5Q_ITVcldn20HJ_-6" value="AppNavigationObserver" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-977" y="860" width="150" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="GwlXa5Q_ITVcldn20HJ_-7" value="HollyExternalDeviceWatcher" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="-997" y="700" width="170" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="GwlXa5Q_ITVcldn20HJ_-8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="lztWq5X_nUzuxm9hb4JQ-43" target="GwlXa5Q_ITVcldn20HJ_-7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-790" y="720" />
+              <mxPoint x="-790" y="720" />
+            </Array>
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
